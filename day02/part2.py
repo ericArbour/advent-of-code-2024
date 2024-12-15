@@ -1,15 +1,30 @@
-file = open("./day02/sample.txt", "r")
+file = open("./day02/input.txt", "r")
 
 input_str = file.read()
 lines = input_str.splitlines()
 reports = (list(map(int, line.split())) for line in lines)
 
-safe_count = 0
 
-for report in list(reports)[3:4]:
-    print(report)
+def get_sub_reports(report):
+    sub_reports = []
+    for index, _ in enumerate(report):
+        sub_reports.append(report[:index] + report[index + 1 :])
+
+    return sub_reports
+
+
+def is_sub_report_safe(report):
+    sub_reports = get_sub_reports(report)
+    for sub_report in sub_reports:
+        if get_is_safe(sub_report, is_sub_report=True):
+            return True
+
+    return False
+
+
+def get_is_safe(report, is_sub_report=False):
     last_diff = None
-    has_one_unsafe = False
+    is_safe = False
     for index, level in enumerate(report):
         if index == 0:
             continue
@@ -19,21 +34,21 @@ for report in list(reports)[3:4]:
         last_diff = diff
 
         if local_last_diff != None and (local_last_diff > 0) != (diff > 0):
-            print('hit inc/dec issue')
-            if has_one_unsafe:
+            if is_sub_report:
                 break
-            has_one_unsafe = True
-            continue
+            return is_sub_report_safe(report)
 
         step = abs(diff)
         if step < 1 or step > 3:
-            print('hit step too big')
-            if has_one_unsafe:
+            if is_sub_report:
                 break
-            has_one_unsafe = True
-            continue
+            return is_sub_report_safe(report)
 
         if index == len(report) - 1:
-            safe_count += 1
+            is_safe = True
 
+    return is_safe
+
+
+safe_count = sum(1 for report in reports if get_is_safe(report))
 print(safe_count)
